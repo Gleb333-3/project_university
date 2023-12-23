@@ -10,6 +10,9 @@ from .serializers import (
     UserRegistrationSerializer,
     ActivationSerializer,
     LoginSerializer,
+    PasswordChangeSerializer,
+    ForgottenPasswordSerializer,
+    SetNewForgottenPasswordSerializer
 )
 
 
@@ -19,7 +22,7 @@ class RegistrationView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(
-                data='Спасибо за регистрацию! Вам было выслано письмо с активационным кодом.',
+                data='Thank you for registration! An email with an activation code has been sent to your email.',
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -31,7 +34,7 @@ class AccountActivationView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.activate_account()
             return Response(
-                'Аккаунт активирован!',
+                'Your account has been activated!',
                 status=status.HTTP_200_OK
             )
 
@@ -47,6 +50,41 @@ class LogoutView(APIView):
         user = request.user
         Token.objects.filter(user=user).delete()
         return Response(
-            'До свидания! Вы успешно вышли из аккаунта.',
+            'You have logged out of your account.',
             status=status.HTTP_200_OK
         )
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request):
+        serializer = PasswordChangeSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.set_new_password()
+            return Response(
+                'Your password has been changed succesfully.',
+                status=status.HTTP_200_OK
+            )
+
+
+class ChangeForgottenPasswordView(APIView):
+    def post(self, request: Request):
+        serializer = ForgottenPasswordSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.send_code()
+            return Response(
+                'A password recovery code has been sent to you.',
+                status=status.HTTP_200_OK
+            )
+
+
+class ChangeForgottenPasswordCompleteView(APIView):
+    def post(self, request: Request):
+        serializer = SetNewForgottenPasswordSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.set_new_password()
+            return Response(
+                'Your password has been recovered successfully.',
+                status=status.HTTP_200_OK
+            )
