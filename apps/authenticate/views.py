@@ -34,7 +34,7 @@ class AccountActivationView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.activate_account()
             return Response(
-                'Your account has been activated!',
+                'Your authenticate has been activated!',
                 status=status.HTTP_200_OK
             )
 
@@ -50,7 +50,7 @@ class LogoutView(APIView):
         user = request.user
         Token.objects.filter(user=user).delete()
         return Response(
-            'You have logged out of your account.',
+            'You have logged out of your authenticate.',
             status=status.HTTP_200_OK
         )
 
